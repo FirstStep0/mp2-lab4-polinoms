@@ -165,14 +165,15 @@ private:
 	void unique() {
 		iterator<monom> it = this->begin();
 		while (it != end()) {
-			if (((iterator<monom>)it->next) != end() && (*it).index == it->next->value.index) {
-				(*it) += (*(iterator<monom>)it->next);
-				erase(it->next);
+			iterator<monom> next_it = it->next;
+			if ((next_it) != end() && (*it).index == (*next_it).index) {
+				(*it) += (*next_it);
+				erase(next_it);
 			}
 			else {
-				iterator<monom> it2 = it++;
-				if ((*it2).coef == 0) {
-					erase(it2);
+				iterator<monom> old_it = it++;
+				if ((*old_it).coef == 0) {
+					erase(old_it);
 				}
 			}
 		}

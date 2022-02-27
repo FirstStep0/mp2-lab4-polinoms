@@ -21,7 +21,6 @@ protected:
 	public:
 		iterator(Node<T>* _node) { node = _node; };
 		T& operator*() { return (node->value); }
-		operator Node<T>* () { return node; }
 		Node<T>* operator->() { return node; };
 
 		iterator<T>& operator++() { node = node->next; return *this; }
@@ -201,7 +200,7 @@ void list<T>::pop_back() {
 template<class T>
 list<T>::iterator<T> list<T>::middle(iterator<T> begin, iterator<T> end) {
 	iterator<T> mid = begin;
-	while (begin != end && (iterator<T>)begin->next != end) {
+	while (begin != end && begin->next != end) {
 		++begin;
 		++begin;
 		++mid;
@@ -241,8 +240,8 @@ list<T>::iterator<T> list<T>::merge(iterator<T> fbegin, iterator<T> fend, iterat
 	attach_before(fend, &nend);
 	iterator<T> new_first_node = less(*sbegin, *fbegin) ? sbegin : fbegin;
 	while (sbegin != send) {
-		if ((less(*sbegin, *fbegin)) || (fbegin == (iterator<T>) & nend)) {
-			temp = sbegin;
+		if ((less(*sbegin, *fbegin)) || (fbegin == &nend)) {
+			temp = sbegin.node;
 			++sbegin;
 			detach_node(temp);
 			attach_before(fbegin, temp);
@@ -256,17 +255,21 @@ list<T>::iterator<T> list<T>::merge(iterator<T> fbegin, iterator<T> fend, iterat
 }
 
 template<class T>
-list<T>::Node<T>* list<T>::detach_node(iterator<T> node) {
+list<T>::Node<T>* list<T>::detach_node(iterator<T> _node) {
+	Node<T>* node = _node.node;
 	node->prev->next = node->next;
 	node->next->prev = node->prev;
 
 	node->prev = nullptr;
 	node->next = nullptr;
-	return node.node;
+	return node;
 }
 
 template<class T>
-void list<T>::attach_before(iterator<T> cur_node, iterator<T> att_node) {
+void list<T>::attach_before(iterator<T> _cur_node, iterator<T> _att_node) {
+	Node<T>* cur_node = _cur_node.node;
+	Node<T>* att_node = _att_node.node;
+
 	cur_node->prev->next = att_node;
 	att_node->next = cur_node;
 
@@ -275,7 +278,10 @@ void list<T>::attach_before(iterator<T> cur_node, iterator<T> att_node) {
 }
 
 template<class T>
-void list<T>::attach_after(iterator<T> cur_node, iterator<T> att_node) {
+void list<T>::attach_after(iterator<T> _cur_node, iterator<T> _att_node) {
+	Node<T>* cur_node = _cur_node.node;
+	Node<T>* att_node = _att_node.node;
+
 	cur_node->next->prev = att_node;
 	att_node->next = cur_node->next;
 
