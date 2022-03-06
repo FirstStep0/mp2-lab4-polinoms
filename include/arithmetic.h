@@ -4,19 +4,23 @@
 typedef unsigned char uchar;
 typedef double type_coef;
 
+const int base = 256;
+
 class monom {
 public:
 	int32_t index;
 	type_coef coef;
 	monom() :monom(0, 0) {};
 	monom(const monom& m) :monom(m.coef, m.index) {};
-	monom(type_coef coef, int32_t x, int32_t y, int32_t z) :monom(coef, DegToIndex(x, y, z)) {};
+	monom(type_coef coef, int32_t x, int32_t y, int32_t z) :coef(coef) {
+		SetIndex(x, y, z);
+	};
 	monom(type_coef coef, int32_t index = 0) :coef(coef), index(index) {}
 	int32_t degx() { return (uchar)(index >> 16); }
 	int32_t degy() { return (uchar)(index >> 8); }
 	int32_t degz() { return (uchar)(index); }
 	void SetIndex(int32_t degx, int32_t degy, int32_t degz) {
-		index = DegToIndex(degx, degy, degz);
+		index = DegToIndex(over(degx, 0), over(degy, 0), over(degz, 0));
 	}
 	friend bool operator<(const monom& a, const monom& b) {
 		return (a.index < b.index) || ((a.index == b.index) && (a.coef < b.coef));
@@ -32,7 +36,8 @@ public:
 	}
 	monom& operator*=(const monom& m) {
 		this->coef *= m.coef;
-		index = sumoverflow(index, m.index);
+		monom* _m = const_cast<monom*>(&m);
+		index = sumoverflow(*this, *_m);
 		return *this;
 	}
 	friend monom operator*(const monom& a, const monom& b) {
@@ -52,21 +57,17 @@ public:
 		return *this;
 	}
 private:
-	int32_t over(int32_t index1, int32_t index2) {
-		int32_t index = index1 + index2;
-		if (index >> (sizeof(uchar) << 3))throw string("overflow monom index");
-		return index;
+	int32_t over(int32_t deg1, int32_t deg2) {
+		int32_t deg = deg1 + deg2;
+		if (deg >= base)throw string("overflow monom index");
+		return deg;
 	}
-
-	int32_t sumoverflow(int32_t index1, int32_t index2) {
-		int32_t index = 0;
-		index ^= over((uchar)index1, (uchar)index2);
-		index ^= over((uchar)(index1 >> 8), (uchar)(index2 >> 8)) << 8;
-		index ^= over((uchar)(index1 >> 16), (uchar)(index2 >> 16)) << 16;
-		return index;
+	int32_t sumoverflow(monom& i1,monom& i2) {
+		return DegToIndex(over(i1.degx(), i2.degx()), over(i1.degy(), i2.degy()), over(i1.degz(), i2.degz()));
 	}
 	int32_t DegToIndex(int32_t degx, int32_t degy, int32_t degz) {
-		return ((int32_t)(over(degx, 0) << (sizeof(uchar) << 4)) ^ (over(degy, 0) << (sizeof(uchar) << 3)) ^ over(degz, 0));
+		return (degx << 16) ^ (degy << 8) ^ (degz);
+		//return (degx*base+degy)*base+degz
 	}
 };
 

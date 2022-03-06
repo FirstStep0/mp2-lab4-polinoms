@@ -24,101 +24,139 @@ double parseToDouble(const string& str) {
 	}
 	return res / pow(10.0, str.size() - pos);
 }
+/*double get_double(string& buffer) {
+	bool was_point = false;
+	int j;
+	string co;
+	for (j = 0; (j < buffer.size()) && (('0' <= buffer[j] && buffer[j] <= '9') || buffer[j] == '.'); j++) {
+		if (buffer[j] == '.') {
+			if (was_point) {
+				//print_slash(j, "incorrect_input");
+				throw error(j, "incorrect_input");
+				//return;
+			}
+			was_point = true;
+		}
+		co += buffer[j];
+	}
+	buffer = buffer.substr(j, buffer.size() - j);
 
-void print_slash(int n) {
-	for (int k = 0; k < n; k++) {
+	return co.size() ? parseToDouble(co) : 1.0;
+}*/
+struct error {
+	uint pos;
+	string message;
+	error(uint pos, string message) :pos(pos), message(message) {};
+};
+
+void print_slash(int pos, string message) {
+	for (int k = 0; k < pos; k++) {
 		cout << " ";
 	}
-	cout << "^";
+	cout << "^\n";
+	if (message.size())
+		cout << message << "\n";
+}
+
+unsigned int parseToUInt(const string& str) {
+	uint res = 0;
+	for (int i = 0; i < str.size(); i++) {
+		if (!('0' <= str[i] && str[i] <= '9'))throw string("error: ParseToUInt()");
+		res *= 10;
+		res += (str[i] - '0');
+	}
+	return res;
 }
 
 void SetPolinom(polinom& p) {
 	polinom test;
-	cout << "Example input: 2.0x3y4+2z2+4.5x1y1z1\n";
+	cout << "Example input: -2.0x3y-2z2+4.5xy2z\n";
+	cout << "the order of variables and monom can be any\n";
 	cout << "Input monom:\n";
 	string str;
 	getline(cin, str);
 	str += '+';
-	//cout << str;
 	string temp = "";
+	bool minus = false;
 	for (int i = 0; i < str.size(); i++) {
 		char& ch = str[i];
-		if (ch == '+') {
-			int j = 0;
-			string co = "";
-			double coef = 1.0;
-			bool was_point = false;
-			while ((j < temp.size()) && (('0' <= temp[j] && temp[j] <= '9') || temp[j] == '.')) {
-				
-				if (temp[j] == '.') { 
-					if (was_point) {
-						print_slash(i - temp.size() + j);
-						cout << "\n" << "incorrect_input\n";
-						return;
+		if (ch == '+' || ch == '-') {
+			bool current_minus = minus;
+			minus = (ch == '-') ? true : false;
+			if (temp.size() > 0) {
+				bool was_point = false;
+				int j = 0;
+				string co = "";
+				double coef = 1.0;
+				temp += '#';
+				for (; (j < temp.size()) && (('0' <= temp[j] && temp[j] <= '9') || temp[j] == '.'); j++) {
+					if (temp[j] == '.') {
+						if (was_point) {
+							throw error(i - temp.size() + j + 1, "many dots");
+						}
+						was_point = true;
 					}
-					was_point = true;
+					co += temp[j];
 				}
-				co += temp[j];
-				j++;
-			}
-			if (co.size()) coef = parseToDouble(co);
+				if (co.size()) coef = parseToDouble(co);
 
-			temp += '#';
-			uint u, x, y, z;
-			u = x = y = z = 0;
-			char type_deg = 0;
-			while (j < temp.size()) {
-				if (('0' <= temp[j] && temp[j] <= '9')) {
-					u *= 10;
-					u += (temp[j] - '0');
-				}
-				else {
-					switch (type_deg) {
-					case 'x': {
-						x = u;
-						break;
+				uint u, x, y, z;
+				string str_u = "";
+				x = y = z = 0;
+				char type_deg = 0;
+				for (; j < temp.size(); j++) {
+					if (('0' <= temp[j] && temp[j] <= '9')) {
+						str_u += temp[j];
 					}
-					case 'y': {
-						y = u;
-						break;
-					}
-					case 'z': {
-						z = u;
-						break;
-					}
-					}
-					u = 0;
+					else {
+						if (!str_u.empty())u = parseToUInt(str_u);
+						switch (type_deg) {
+						case 'x': {
+							x = u;
+							break;
+						}
+						case 'y': {
+							y = u;
+							break;
+						}
+						case 'z': {
+							z = u;
+							break;
+						}
+						}
+						u = 1;
+						str_u = "";
 
-					switch (temp[j]) {
-					case 'x': {
-						type_deg = 'x';
-						break;
-					}
-					case 'y': {
-						type_deg = 'y';
-						break;
-					}
-					case 'z': {
-						type_deg = 'z';
-						break;
-					}
-					case '#': {
-						break;
-					}
-					default: {
-						print_slash(i - temp.size() + j + 1);
-						cout << "\n";
-						cout << "incorrect_input\n";
-						return;
-					}
+						switch (temp[j]) {
+						case 'x': {
+							type_deg = 'x';
+							break;
+						}
+						case 'y': {
+							type_deg = 'y';
+							break;
+						}
+						case 'z': {
+							type_deg = 'z';
+							break;
+						}
+						case '#': {
+							break;
+						}
+						default: {
+							throw error(i - temp.size() + j + 1, "incorrect_input");
+							return;
+						}
+						}
 					}
 				}
-				j++;
+				if (current_minus)coef = -coef;
+				test += monom(coef, x, y, z);
+				temp = "";
 			}
-			test += monom(coef, x, y, z);
-			temp = "";
 		}
 		else {
+			if (ch != ' ')
 			temp += ch;
 		}
 	}
@@ -126,8 +164,8 @@ void SetPolinom(polinom& p) {
 }
 
 void Initialize() {
-	f += monom(5, 1);
-	s += monom(2, 3);
+	f += monom(5, 1, 0, 0);
+	s += monom(-2, 0, 2, 3);
 }
 
 int main()
@@ -142,9 +180,9 @@ int main()
 		cout << "+---------------------------------+\n";
 		cout << "[command for polinoms]\n";
 		cout << "1. Set first polinom\n";
-		cout << "first: " << f << "\n";
+		cout << " " << f << "\n";
 		cout << "2. Set second polinom\n";
-		cout << "second: " << s << "\n";
+		cout << " " << s << "\n";
 		cout << "[arithmetic operations]\n";
 		cout << "3. Add\n";
 		cout << "4. Sub\n";
@@ -190,6 +228,9 @@ int main()
 		}
 		catch (string s) {
 			cout << s << "\n";
+		}
+		catch (error e) {
+			print_slash(e.pos, e.message);
 		}
 		catch(...){
 			cout << "undefined error\n";
