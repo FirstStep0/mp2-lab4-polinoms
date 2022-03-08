@@ -19,6 +19,39 @@ TEST(polinom, multiply_is_correct) {
 	EXPECT_EQ(r, d);
 }
 
+TEST(polinom, add_operator_is_correct) {
+	polinom a;
+	a += monom(-1, 2, 0, 0);
+	a += monom(2, 4, 0, 0);
+	polinom b;
+	b += monom(3, 2, 0, 0);
+	b += monom(3, 2, 3, 0);
+	polinom r = a + b;
+	polinom d;
+	d += monom(2, 4, 0, 0);
+	d += monom(3, 2, 3, 0);
+	d += monom(2, 2, 0, 0);
+	EXPECT_EQ(r, d);
+}
+
+TEST(polinom, sub_operator_is_correct) {
+	polinom a;
+	a += monom(-1, 2, 0, 0);
+	a += monom(2, 4, 0, 0);
+	a += monom(2, 2, 3, 0);
+	a += monom(1, 0, 7, 0);
+	polinom b;
+	b += monom(3, 2, 0, 0);
+	b += monom(3, 2, 3, 0);
+	b += monom(1, 0, 7, 0);
+	polinom r = a - b;
+	polinom d;
+	d += monom(2, 4, 0, 0);
+	d += monom(-1, 2, 3, 0);
+	d += monom(-4, 2, 0, 0);
+	EXPECT_EQ(r, d);
+}
+
 TEST(polinom, add_operator_combines_the_same_monom) {
 	polinom a, b;
 	a += monom(1, 1);

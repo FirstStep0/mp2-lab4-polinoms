@@ -2,9 +2,10 @@
 #include "stack.h"
 #include <cstdint>
 typedef unsigned char uchar;
-typedef double type_coef;
+typedef float type_coef;
 
 const int base = 256;
+const double eps = 0.000001;
 
 class monom {
 public:
@@ -28,8 +29,8 @@ public:
 	friend bool operator>(const monom& a, const monom& b) {
 		return (a.index > b.index) || ((a.index == b.index) && (a.coef > b.coef));
 	}
-	friend bool operator==(const monom& a, const monom& b) { return(a.index == b.index) && (a.coef == b.coef); };
-	friend bool operator!=(const monom& a, const monom& b) { return(a.index != b.index) || (a.coef != b.coef); };
+	friend bool operator==(const monom& a, const monom& b) { return(a.index == b.index); };
+	friend bool operator!=(const monom& a, const monom& b) { return(a.index != b.index); };
 	monom& operator*=(const type_coef& coef) {
 		this->coef *= coef;
 		return *this;
@@ -93,30 +94,25 @@ public:
 		push_front(m);
 	}
 	polinom& operator*=(const type_coef& k) {
-		auto it = begin();
-		while (it != end()) {
-			(*it) *= k; ++it;
+		for (auto it = begin(); it != end(); ++it) {
+			(*it) *= k;
 		}
 		unique();
 		return *this;
 	}
 	friend bool operator==(const polinom& a, const polinom& b) {
 		polinom p = a - b;
-		if (p.size() == 0)return true;
+		if (p.empty())return true;
 		else return false;
 	}
 	friend polinom operator*(const polinom& p, const polinom& q) {
 		polinom r;
 		polinom* _p = const_cast<polinom*>(&p);
 		polinom* _q = const_cast<polinom*>(&q);
-		auto it1 = _p->begin();
-		while (it1 != _p->end()) {
-			auto it2 = _q->begin();
-			while (it2 != _q->end()) {
+		for (auto it1 = _p->begin(); it1 != _p->end(); ++it1) {
+			for (auto it2 = _q->begin(); it2 != _q->end(); ++it2) {
 				r.push_back((*it1) * (*it2));
-				++it2;
 			}
-			++it1;
 		}
 		r.sort();
 		r.unique();
@@ -167,13 +163,15 @@ private:
 		iterator<monom> it = this->begin();
 		while (it != end()) {
 			iterator<monom> next_it = it->next;
-			if ((next_it) != end() && (*it).index == (*next_it).index) {
+			if ((next_it) != end() && (*it) == (*next_it)) {
 				(*it) += (*next_it);
 				erase(next_it);
 			}
 			else {
 				iterator<monom> old_it = it++;
-				if ((*old_it).coef == 0) {
+				type_coef m = (*old_it).coef;
+				m = (m >= 0) ? m: -m;
+				if (m < eps) {
 					erase(old_it);
 				}
 			}

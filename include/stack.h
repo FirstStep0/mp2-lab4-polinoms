@@ -144,7 +144,7 @@ void list<T>::sort(Compare less) {
 template <class T>
 template <class Compare>
 list<T>::iterator<T> list<T>::sort(iterator<T> begin, iterator<T> end, Compare less) {
-	if ((iterator<T>)(begin->next) == end)return begin;
+	if ((begin->next) == end)return begin;
 	iterator<T> mid = middle(begin, end);
 	begin = sort(begin, mid, less);
 	mid = sort(mid, end, less);
