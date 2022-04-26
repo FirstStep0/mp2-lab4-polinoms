@@ -6,6 +6,32 @@ TEST(polinom, can_create_polinom) {
 	EXPECT_NO_THROW(polinom p);
 }
 
+TEST(polinom, size_not_change_if_monom_is_equal_zero) {
+	polinom p;
+	int max_rand = 10;
+	int count = rand() % max_rand;
+	for (int i = 0; i < count; i++) {
+		p += monom(rand() % 10, rand() % 10, rand() % 10, rand() % 10);
+	}
+	int size1 = p.size();
+	p += monom(0, 3, 3, 3);
+	int size2 = p.size();
+	EXPECT_EQ(size1, size2);
+}
+
+TEST(polinom, size_change_if_monom_is_not_equal_zero) {
+	polinom p;
+	int max_rand = 10;
+	int count = rand() % max_rand;
+	for (int i = 0; i < count; i++) {
+		p += monom(rand() % 10, rand() % 10, rand() % 10, rand() % 10);
+	}
+	int size1 = p.size();
+	p += monom(3, 3, 3, 3);
+	int size2 = p.size();
+	EXPECT_EQ(size1 + 1, size2);
+}
+
 TEST(polinom, multiply_is_correct) {
 	polinom a;
 	a += monom(1, 2);

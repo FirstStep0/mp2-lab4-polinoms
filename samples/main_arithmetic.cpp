@@ -43,6 +43,7 @@ double parseToDouble(const string& str) {
 
 	return co.size() ? parseToDouble(co) : 1.0;
 }*/
+
 struct error {
 	uint pos;
 	string message;
@@ -68,22 +69,22 @@ unsigned int parseToUInt(const string& str) {
 	return res;
 }
 
-void SetPolinom(polinom& p) {
+void SetPolinom(string& input, polinom& p) {
 	polinom test;
-	cout << "Example input: -2.0x3y-2z2+4.5xy2z\n";
-	cout << "the order of variables and monom can be any\n";
-	cout << "Input monom:\n";
-	string str;
-	getline(cin, str);
-	str += '+';
+	input += '+';
 	string temp = "";
 	bool minus = false;
-	for (int i = 0; i < str.size(); i++) {
-		char& ch = str[i];
+	for (int i = 0; i < input.size(); i++) {
+		char& ch = input[i];
 		if (ch == '+' || ch == '-') {
-			bool current_minus = minus;
-			minus = (ch == '-') ? true : false;
-			if (temp.size() > 0) {
+			if (temp.size() == 0) {
+				minus = (minus ^ (ch == '-'));
+				//minus = (ch == '-') ? true : false;
+			}
+			else /*(temp.size() > 0)*/ {
+				bool current_minus = minus;
+				minus = (ch == '-') ? true : false;
+
 				bool was_point = false;
 				int j = 0;
 				string co = "";
@@ -157,10 +158,20 @@ void SetPolinom(polinom& p) {
 		}
 		else {
 			if (ch != ' ')
-			temp += ch;
+				temp += ch;
 		}
 	}
 	p = test;
+}
+
+void SetPolinom(polinom& p) {
+	cout << "Example input: -2.0x3y-2z2+4.5xy2z\n";
+	cout << "the order of variables and monom can be any\n";
+	cout << "maximum degree is 256\n";
+	cout << "Input monom:\n";
+	string input;
+	getline(cin, input);
+	SetPolinom(input, p);
 }
 
 void Initialize() {

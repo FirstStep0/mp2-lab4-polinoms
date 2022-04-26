@@ -2,6 +2,7 @@
 
 #include "stack.h"
 #include <gtest.h>
+#include <algorithm>
 
 TEST(list, can_create_list) {
 	ASSERT_NO_THROW(list<int> l);
@@ -12,17 +13,71 @@ TEST(list, new_list_is_empty) {
 	EXPECT_EQ(l.empty(), true);
 }
 
-TEST(list, push_back_correctly_add_element) {
-	list<int> l;
-	for (int i = 0; i < 10; i++) {
-		l.push_back(i);
-		EXPECT_EQ(l.back(), i);
+TEST(list, can_create_list_from_other_list) {
+	list<int> l1;
+	for (int i = 0; i <= 10; i += 2) {
+		l1.push_back(i);
+	}
+	list<int> l2(l1);
+	auto it = l2.begin();
+	int i = 0;
+	while (it != l2.end()) {
+		EXPECT_EQ((*it), i);
+		++it;
+		i += 2;
 	}
 }
+
+TEST(list, push_back_correctly_add_element) {
+	list<int> l;
+	const int siz = 10;
+	int arr[siz];
+	for (int i = 0; i < siz; i++) {
+		arr[i] = rand();
+		l.push_back(arr[i]);
+		auto it = l.begin();
+		for (int j = 0; it != l.end(); ++it, j++) {
+			EXPECT_EQ((*it), arr[j]);
+		}
+	}
+}
+
+TEST(list, insert_correctly_add_element) {
+	list<int> l;
+	const int siz = 10;
+	int arr[siz];
+	for (int i = 0; i < siz; i++)arr[i] = rand();
+	int pos = rand() % siz;
+	auto it = l.begin();
+	for (int i = 0; i < siz; i++) {
+		if (i != pos)l.push_back(arr[i]);
+		else {
+			it = l.end();
+			--it;
+		}
+	}
+	l.insert(it, arr[pos]);
+	int index = 0;
+	it = l.begin();
+	while (it != l.end()) {
+		EXPECT_EQ((*it), arr[index]);
+		++it;
+		++index;
+	}
+}
+
+TEST(list, insert_change_size) {
+	list<int> l;
+	for (int i = 1; i <= 10; i++) {
+		l.insert(l.begin(), rand());
+		EXPECT_EQ(l.size(), i);
+	}
+}
+
 TEST(list, push_back_change_size) {
 	list<int> l;
 	for (int i = 1; i <= 10; i++) {
-		l.push_back(i);
+		l.push_back(rand());
 		EXPECT_EQ(l.size(), i);
 	}
 }
@@ -30,7 +85,7 @@ TEST(list, push_back_change_size) {
 TEST(list, pop_back_change_size) {
 	list<int> l;
 	for (int i = 1; i <= 10; i++) {
-		l.push_back(i);
+		l.push_back(rand());
 	}
 	for (int i = 1; i <= 10; i++) {
 		l.pop_back();
@@ -46,7 +101,7 @@ TEST(list, pop_back_throw_exception_if_list_is_empty) {
 TEST(list, push_front_change_size) {
 	list<int> l;
 	for (int i = 1; i <= 10; i++) {
-		l.push_front(i);
+		l.push_front(rand());
 		EXPECT_EQ(l.size(), i);
 	}
 }
@@ -54,7 +109,7 @@ TEST(list, push_front_change_size) {
 TEST(list, pop_front_change_size) {
 	list<int> l;
 	for (int i = 1; i <= 10; i++) {
-		l.push_front(i);
+		l.push_front(rand());
 	}
 	for (int i = 1; i <= 10; i++) {
 		l.pop_front();
@@ -63,27 +118,21 @@ TEST(list, pop_front_change_size) {
 }
 TEST(list, push_front_correctly_add_element) {
 	list<int> l;
-	for (int i = 1; i <= 10; i++) {
-		l.push_front(i);
-		EXPECT_EQ(l.front(), i);
-	}
-	auto it = l.begin();
-	int i = 10;
-	while (it != l.end()) {
-		EXPECT_EQ((*it), i);
-		++it;
-		--i;
+	const int siz = 10;
+	int arr[siz];
+	for (int i = siz - 1; i >= 0; i--) {
+		arr[i] = rand();
+		l.push_front(arr[i]);
+		auto it = l.begin();
+		for (int j = i; it != l.end(); ++it, j++) {
+			EXPECT_EQ((*it), arr[j]);
+		}
 	}
 }
 
 TEST(list, pop_front_throw_exception_if_list_is_empty) {
 	list<int> l;
 	EXPECT_ANY_THROW(l.pop_front());
-}
-
-TEST(list, can_create_list_from_other_list) {
-	list<int> l1;
-	EXPECT_NO_THROW(list<int> l2(l1));
 }
 
 TEST(list, list_and_the_copied_list_are_equal) {
@@ -112,20 +161,27 @@ TEST(list, clear_list_is_empty) {
 }
 TEST(list, merge_is_correctly) {
 	list<int> l1, l2;
-	l1.push_back(1);
-	l1.push_back(3);
-	l1.push_back(5);
-
-	l2.push_back(2);
-	l2.push_back(4);
-
+	const int siz = 10;
+	int arr[siz];
+	for (int i = 0; i < siz; i++) {
+		arr[i] = rand();
+	}
+	sort(arr, arr + siz);
+	for (int i = 0; i < siz; i++) {
+		if (i % 2) {
+			l1.push_back(arr[i]);
+		}
+		else {
+			l2.push_back(arr[i]);
+		}
+	}
 	l1.merge(l2);
-	int i = 1;
+	int index = 0;
 	auto it = l1.begin();
 	while (it != l1.end()) {
-		EXPECT_EQ((*it), i);
+		EXPECT_EQ((*it), arr[index]);
 		++it;
-		++i;
+		++index;
 	}
 }
 TEST(list, sort_is_correctly) {
@@ -145,4 +201,10 @@ TEST(list, sort_is_correctly) {
 		}
 		l1.clear();
 	}
+}
+
+TEST(list, clear_change_size) {
+	list<int> l;
+	l.clear();
+	EXPECT_EQ(l.size(), 0);
 }
